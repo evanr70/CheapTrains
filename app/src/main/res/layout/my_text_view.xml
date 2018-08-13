@@ -41,6 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
+        android:layout_marginLeft="10dp"
         android:gravity="right"
         android:textAlignment="gravity"
         app:layout_constraintRight_toLeftOf="@id/price"
@@ -48,11 +49,12 @@
 
     <TextView
         android:id="@+id/price"
-        android:layout_width="60dp"
+        android:layout_width="55dp"
+        android:ems="4"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
         android:gravity="right"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>

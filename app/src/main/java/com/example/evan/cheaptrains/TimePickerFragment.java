@@ -33,7 +33,7 @@ public class TimePickerFragment extends DialogFragment
     @SuppressLint("DefaultLocale")
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
         // Do something with the time chosen by the user
-        TextView timeText = (TextView) view.findViewById(R.id.time_text);
+        TextView timeText = view.findViewById(R.id.time_text);
         System.out.println(timeText.toString());
         String text = String.format("%02d:%02d", hourOfDay, minute);
         System.out.println(text);

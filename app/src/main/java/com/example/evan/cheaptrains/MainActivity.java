@@ -6,76 +6,51 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
-
-import com.example.evan.cheaptrains.R;
-import com.opencsv.CSVReader;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static java.util.Collections.addAll;
 
 public class MainActivity extends AppCompatActivity {
 
     // TODO: Create buttons and forms for endDate to be passed through intent. Remeber to check that start date is before end date + default 1 day?
 
-
     private CheckBox railcard;
-
     private DateTimeFormatter date = DateTimeFormat.forPattern("dd/MM/yy");
     private DateTimeFormatter time = DateTimeFormat.forPattern("HH:mm");
-
     private TextView timeText;
-    private Button timeButton;
-
+    private ImageButton timeButton;
     private TextView dateText;
-    private Button dateButton;
-
+    private ImageButton dateButton;
     private Button submitButton;
-
     private TimePickerDialog.OnTimeSetListener timeSetListener;
     private DatePickerDialog.OnDateSetListener dateSetListener;
-
-    private String timeString;
-    private String dateString;
-
     private AutoCompleteTextView startStationText;
     private AutoCompleteTextView endStationText;
-
     private Map<String, String> stations;
     private ArrayList<String> stationNames = new ArrayList<>();
-
     private ColorStateList textColors;
 
     @Override
@@ -86,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             stations = getStations();
             Set<String> keys = stations.keySet();
-            System.out.println(keys);;
+            System.out.println(keys);
             System.out.println(stationNames);
             stationNames.addAll(keys);
         } catch (IOException e) {
@@ -95,11 +70,11 @@ public class MainActivity extends AppCompatActivity {
 
         railcard = findViewById(R.id.railcard);
 
-        timeText = (TextView) findViewById(R.id.time_text);
-        timeButton = (Button) findViewById(R.id.time_button);
+        timeText = findViewById(R.id.time_text);
+        timeButton = findViewById(R.id.time_button);
 
-        dateText = (TextView) findViewById(R.id.date_text);
-        dateButton = (Button) findViewById(R.id.date_button);
+        dateText = findViewById(R.id.date_text);
+        dateButton = findViewById(R.id.date_button);
 
         submitButton = findViewById(R.id.submit_button);
 
@@ -108,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
         textColors = startStationText.getTextColors();
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line,
                 stationNames);
 
@@ -118,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
         timeButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
+            public void onClick(View view) {
                 Calendar cal = Calendar.getInstance();
                 int hour = cal.get(Calendar.HOUR_OF_DAY);
                 int minute = cal.get(Calendar.MINUTE);
@@ -138,13 +113,12 @@ public class MainActivity extends AppCompatActivity {
                 @SuppressLint("DefaultLocale") String date = String.format("%02d:%02d",
                         hour, minute);
                 timeText.setText(date);
-                timeString = date;
             }
         };
 
         dateButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
+            public void onClick(View view) {
                 Calendar cal = Calendar.getInstance();
                 int year = cal.get(Calendar.YEAR);
                 int month = cal.get(Calendar.MONTH);
@@ -168,14 +142,13 @@ public class MainActivity extends AppCompatActivity {
                 @SuppressLint("DefaultLocale") String date = String.format("%02d/%02d/%s",
                         day, month, yearString);
                 dateText.setText(date);
-                dateString = date;
             }
         };
 
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (inputsValid()){
+                if (inputsValid()) {
                     sendMessage(view);
                 }
             }
@@ -187,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
         DialogFragment newFragment = new TimePickerFragment();
         newFragment.show(getSupportFragmentManager(), "timePicker");
     }
-
 
     /* Called when the user taps the Send button */
     public void sendMessage(View view) {
@@ -206,10 +178,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
 
     }
-
-    private static final String[] STATIONS2 = new String[] {
-            "London", "Abergavenny", "Oxford"
-    };
 
     private Map<String, String> getStations() throws IOException {
 
@@ -265,13 +233,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void setDateToday(View view){
+    public void setDateToday(View view) {
         DateTime dateTime = new DateTime();
         dateText.setText(date.print(dateTime));
         timeText.setText(time.print(dateTime));
     }
 
-    public void setDateTomorrow(View view){
+    public void setDateTomorrow(View view) {
         DateTime dateTime = new DateTime();
         dateTime = dateTime.plusDays(1);
         dateText.setText(date.print(dateTime));

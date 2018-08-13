@@ -11,4 +11,6 @@
     <string name="today">TODAY</string>
     <string name="tomorrow">TOMORROW</string>
     <string name="railcard">Railcard</string>
+    <string name="network_failure">Network failure</string>
+    <string name="redo_button">redo button</string>
 </resources>

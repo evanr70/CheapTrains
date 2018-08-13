@@ -107,7 +107,7 @@ public class GetTimesActivity extends AppCompatActivity {
             p.printStackTrace();
         }
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mRecyclerView = findViewById(R.id.recycler_view);
 
         // Improve performance for static sized RecyclerView
         mRecyclerView.setHasFixedSize(true);

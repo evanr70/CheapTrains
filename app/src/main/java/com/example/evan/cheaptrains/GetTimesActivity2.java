@@ -2,6 +2,8 @@ package com.example.evan.cheaptrains;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +11,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -50,7 +53,8 @@ public class GetTimesActivity2 extends AppCompatActivity {
 
     private RecyclerView.Adapter mAdapter;
     RecyclerView mRecyclerView;
-    Button sort_list;
+    Button sortListButton;
+    ImageButton redoButton;
 
     List<Train> trains = new ArrayList<>();
 
@@ -80,6 +84,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
     DateTime endDateTime;
 
     int previousTimeInt;
+    int percentageInt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +109,9 @@ public class GetTimesActivity2 extends AppCompatActivity {
 
         railcard = intent.getExtras().getBoolean("RAIL_CARD");
 
-        sort_list = findViewById(R.id.sort_list);
+        redoButton = findViewById(R.id.redo_button);
+
+        sortListButton = findViewById(R.id.sort_list);
 
         mRecyclerView = findViewById(R.id.recycler_view);
 
@@ -273,7 +280,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
                         Seconds secondsElapsed = Seconds.secondsBetween(initialDateTime, lastDateTime);
 
                         float percentageComplete = (float)secondsElapsed.getSeconds()/totalTime * 100;
-                        int percentageInt = percentageComplete > 100 ? 100 : (int) percentageComplete;
+                        percentageInt = percentageComplete > 100 ? 100 : (int) percentageComplete;
 
                         reportTimeText.setText(percentageInt + "% Complete");
 
@@ -285,7 +292,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
                                     startDateTime.toString(), endDateTime.toString()));
                             progressBar.setVisibility(ProgressBar.GONE);
 
-                            sort_list.setOnClickListener(new View.OnClickListener() {
+                            sortListButton.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
                                     Collections.sort(trains, new Comparator<Train>() {
@@ -309,6 +316,21 @@ public class GetTimesActivity2 extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
+                progressBar.setIndeterminate(false);
+                progressBar.setProgress(percentageInt);
+                progressBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
+                reportTimeText.setText(R.string.network_failure);
+                redoButton.setVisibility(ImageButton.VISIBLE);
+
+                redoButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        StringRequest redoRequest = getStringRequest(trains.get(0).getDateTime(), requestQueue);
+                        requestQueue.add(redoRequest);
+                        redoButton.setVisibility(ImageButton.GONE);
+                        progressBar.setIndeterminate(true);
+                    }
+                });
             }
         });
     }

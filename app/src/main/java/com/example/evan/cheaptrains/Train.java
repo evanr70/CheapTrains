@@ -3,6 +3,7 @@ package com.example.evan.cheaptrains;
 import org.joda.time.DateTime;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class Train {
     private String time;
@@ -97,6 +98,11 @@ public class Train {
             return false;
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dateTime);
     }
 
 
