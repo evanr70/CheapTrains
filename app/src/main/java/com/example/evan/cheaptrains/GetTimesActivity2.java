@@ -86,6 +86,16 @@ public class GetTimesActivity2 extends AppCompatActivity {
     int previousTimeInt;
     int percentageInt;
 
+    RequestQueue requestQueue;
+
+    boolean killRequests;
+
+    @Override
+    public void onBackPressed() {
+        killRequests = true;
+        super.onBackPressed();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,10 +112,10 @@ public class GetTimesActivity2 extends AppCompatActivity {
         endStation = intent.getStringExtra("END_STATION");
 
         startDateString = intent.getStringExtra("START_DATE");
-        endDateString = "160818";
+//        endDateString = "160818";
 
         startTimeString = intent.getStringExtra("START_TIME");
-        endTimeString = "0900";
+//        endTimeString = "0900";
 
         railcard = intent.getExtras().getBoolean("RAIL_CARD");
 
@@ -127,21 +137,26 @@ public class GetTimesActivity2 extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
 
         // Instantiate the RequestQueue
-        RequestQueue queue = Volley.newRequestQueue(this);
+        requestQueue = Volley.newRequestQueue(this);
 
         previousTimeInt = 0;
 
         startDateTime = createDateTimeFormat.parseDateTime(startDateString + startTimeString);
-        endDateTime = createDateTimeFormat.parseDateTime(endDateString + endTimeString);
+//        endDateTime = createDateTimeFormat.parseDateTime(endDateString + endTimeString);
+
+        endDateTime = startDateTime.plusDays(1);
 
         initialDateTime = startDateTime;
 
-        totalTime =  Seconds.secondsBetween(startDateTime, endDateTime).getSeconds();
+        totalTime = Seconds.secondsBetween(startDateTime, endDateTime).getSeconds();
+
+        killRequests = false;
 
         progressBar.setVisibility(ProgressBar.VISIBLE);
-        StringRequest stringRequest = getStringRequest(startDateTime, queue);
+        StringRequest stringRequest = getStringRequest(startDateTime, requestQueue);
+        stringRequest.setTag(this);
         // Add the request to the request queue
-        queue.add(stringRequest);
+        requestQueue.add(stringRequest);
 
     }
 
@@ -181,6 +196,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
                             JSONObject journeyBreakdown;
                             JSONArray singleJsonFareBreakdowns;
 
+                            String arrivalTime;
                             String departureTime;
 
                             double ticketPriceTotal = 0;
@@ -200,14 +216,12 @@ public class GetTimesActivity2 extends AppCompatActivity {
                                 singleJsonFareBreakdowns = obj.getJSONArray("singleJsonFareBreakdowns");
 
                                 // Parameters from journeyBreakdown
+                                arrivalTime = journeyBreakdown.getString("arrivalTime");
                                 departureTime = journeyBreakdown.getString("departureTime");
 
                                 int departureTimeInt = Integer.parseInt(departureTime.replace(":", ""));
 
                                 if ((departureTimeInt - previousTimeInt < -60)) {
-//                                    Calendar c = Calendar.getInstance();
-//                                    c.setTime(startDateTime);
-//                                    c.add(Calendar.DATE, 1);
                                     departureDateTime[0] = startDateTime.plusDays(1);
                                 }
 
@@ -250,7 +264,8 @@ public class GetTimesActivity2 extends AppCompatActivity {
                             }
 
                             train.setPrice(String.format("£%.2f", ticketPriceTotal));
-                            train.setTime(departureTime);
+                            train.setArrivalTime(arrivalTime);
+                            train.setDepartureTime(departureTime);
                             train.setType(ticketType);
 
                             train.setDate(trainDateFormat.print(departureDateTime[0]));
@@ -260,7 +275,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
                             trainDateTime = trainDateTime.hourOfDay().setCopy(Integer.parseInt(departureTime.substring(0, 2)));
                             trainDateTime = trainDateTime.minuteOfHour().setCopy(Integer.parseInt(departureTime.substring(3)));
 
-                            train.setDateTime(trainDateTime);
+                            train.setDepartureDateTime(trainDateTime);
 
                             train.setStartStation(startStation);
                             train.setEndStation(endStation);
@@ -273,20 +288,24 @@ public class GetTimesActivity2 extends AppCompatActivity {
                             }
                         }
 
-                        DateTime lastDateTime = trains.get(0).getDateTime();
+                        DateTime lastDateTime = trains.get(0).getDepartureDateTime();
 
                         System.out.println(reportTimeText.getText());
 
                         Seconds secondsElapsed = Seconds.secondsBetween(initialDateTime, lastDateTime);
 
-                        float percentageComplete = (float)secondsElapsed.getSeconds()/totalTime * 100;
+                        float percentageComplete = (float) secondsElapsed.getSeconds() / totalTime * 100;
                         percentageInt = percentageComplete > 100 ? 100 : (int) percentageComplete;
 
                         reportTimeText.setText(percentageInt + "% Complete");
 
                         if (endDateTime.isAfter(lastDateTime)) {
-                            StringRequest sr = getStringRequest(lastDateTime, requestQueue);
-                            requestQueue.add(sr);
+                            if (!killRequests) {
+                                StringRequest sr = getStringRequest(lastDateTime, requestQueue);
+                                requestQueue.add(sr);
+                            } else {
+                                System.out.println("Back button was pressed, so request queue was killed");
+                            }
                         } else {
                             System.out.println(String.format("Exited because:\nCurrent date: %s\nis after\nEnd date: %s",
                                     startDateTime.toString(), endDateTime.toString()));
@@ -299,9 +318,9 @@ public class GetTimesActivity2 extends AppCompatActivity {
                                         @Override
                                         public int compare(Train t1, Train t2) {
                                             if (t1.getPrice().equals(t2.getPrice())) {
-                                                return t1.getDateTime().isBefore(t2.getDateTime()) ? -1 : 1;
+                                                return t1.getDepartureDateTime().isBefore(t2.getDepartureDateTime()) ? -1 : 1;
                                             }
-                                            return Double.parseDouble(t1.getPrice().replace("£","")) < Double.parseDouble(t2.getPrice().replace("£","")) ? -1 : 1;
+                                            return Double.parseDouble(t1.getPrice().replace("£", "")) < Double.parseDouble(t2.getPrice().replace("£", "")) ? -1 : 1;
                                         }
                                     });
                                     System.out.println("Trains sorted");
@@ -325,7 +344,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
                 redoButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        StringRequest redoRequest = getStringRequest(trains.get(0).getDateTime(), requestQueue);
+                        StringRequest redoRequest = getStringRequest(trains.get(0).getDepartureDateTime(), requestQueue);
                         requestQueue.add(redoRequest);
                         redoButton.setVisibility(ImageButton.GONE);
                         progressBar.setIndeterminate(true);
@@ -333,5 +352,14 @@ public class GetTimesActivity2 extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        if (requestQueue != null) {
+            requestQueue.cancelAll(this);
+        }
     }
 }

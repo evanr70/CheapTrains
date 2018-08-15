@@ -6,6 +6,8 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
@@ -16,12 +18,15 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
 import org.joda.time.DateTime;
+import org.joda.time.MonthDay;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -82,6 +87,10 @@ public class MainActivity extends AppCompatActivity {
         endStationText = findViewById(R.id.end_station);
 
         textColors = startStationText.getTextColors();
+
+        String dayOfMonth = String.format("%02d", new MonthDay().getDayOfMonth());
+
+        ((TextView) findViewById(R.id.today_text)).setText(dayOfMonth);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line,
@@ -173,6 +182,8 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("END_STATION", stations.get(endStationText.getText().toString()));
 
         intent.putExtra("RAIL_CARD", railcard.isChecked());
+
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
 
         startActivity(intent);

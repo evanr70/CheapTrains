@@ -2,27 +2,35 @@ package com.example.evan.cheaptrains;
 
 import org.joda.time.DateTime;
 
-import java.util.Date;
 import java.util.Objects;
 
 public class Train {
-    private String time;
+    private String departureTime;
+    private String arrivalTime;
     private String type;
     private String price;
     private String date;
-    private DateTime dateTime;
+    private DateTime departureDateTime;
     private String startStation;
     private String endStation;
     private String url;
 
     Train (){}
 
-    public String getTime() {
-        return time;
+    public String getArrivalTime() {
+        return arrivalTime;
     }
 
-    public void setTime(String time) {
-        this.time = time;
+    public void setArrivalTime(String arrivalTime) {
+        this.arrivalTime = arrivalTime;
+    }
+
+    public String getDepartureTime() {
+        return departureTime;
+    }
+
+    public void setDepartureTime(String time) {
+        this.departureTime = time;
     }
 
     public String getType() {
@@ -49,12 +57,12 @@ public class Train {
         this.date = date;
     }
 
-    public DateTime getDateTime() {
-        return dateTime;
+    public DateTime getDepartureDateTime() {
+        return departureDateTime;
     }
 
-    public void setDateTime(DateTime dateTime) {
-        this.dateTime = dateTime;
+    public void setDepartureDateTime(DateTime dateTime) {
+        this.departureDateTime = dateTime;
     }
 
     public String getStartStation() {
@@ -82,17 +90,17 @@ public class Train {
                 startStation,
                 endStation,
                 date.replace("/", ""),
-                time.replace(":", ""));
+                departureTime.replace(":", ""));
     }
 
     @Override
     public boolean equals(Object other){
 
         if (other instanceof Train){
-            if (dateTime.equals(((Train) other).getDateTime())) {
+            if (departureDateTime.equals(((Train) other).getDepartureDateTime())) {
                 System.out.println("While checking the trains for similarity, they were equal");
-                System.out.println(dateTime.toString());
-                System.out.println(((Train) other).getDateTime());
+                System.out.println(departureDateTime.toString());
+                System.out.println(((Train) other).getDepartureDateTime());
                 return true;
             }
             return false;
@@ -102,7 +110,7 @@ public class Train {
 
     @Override
     public int hashCode() {
-        return Objects.hash(dateTime);
+        return Objects.hash(departureDateTime);
     }
 
 
