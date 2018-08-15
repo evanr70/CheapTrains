@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -80,6 +81,8 @@ public class GetTimesActivity2 extends AppCompatActivity {
     String urlForm;
     String url;
 
+    View.OnClickListener sortButtonOnClickListener;
+
 
     DateTime endDateTime;
 
@@ -87,6 +90,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
     int percentageInt;
 
     RequestQueue requestQueue;
+    StringRequest firstStringRequest;
 
     boolean killRequests;
 
@@ -152,11 +156,30 @@ public class GetTimesActivity2 extends AppCompatActivity {
 
         killRequests = false;
 
+        sortButtonOnClickListener = new View.OnClickListener() {
+                                              @Override
+                                              public void onClick(View view) {
+                                                  Toast.makeText(GetTimesActivity2.this, "Sorted by price", Toast.LENGTH_SHORT).show();
+                                                  Collections.sort(trains, new Comparator<Train>() {
+                                                      @Override
+                                                      public int compare(Train t1, Train t2) {
+                                                          if (t1.getPrice().equals(t2.getPrice())) {
+                                                              return t1.getDepartureDateTime().isBefore(t2.getDepartureDateTime()) ? -1 : 1;
+                                                          }
+                                                          return Double.parseDouble(t1.getPrice().replace("£", "")) < Double.parseDouble(t2.getPrice().replace("£", "")) ? -1 : 1;
+                                                      }
+                                                  });
+                                                  System.out.println("trains sorted");
+                                                  mAdapter.notifyDataSetChanged();
+                                              }
+                                          };
+
+
         progressBar.setVisibility(ProgressBar.VISIBLE);
-        StringRequest stringRequest = getStringRequest(startDateTime, requestQueue);
-        stringRequest.setTag(this);
+        firstStringRequest = getStringRequest(startDateTime, requestQueue);
+        firstStringRequest.setTag(this);
         // Add the request to the request queue
-        requestQueue.add(stringRequest);
+        requestQueue.add(firstStringRequest);
 
     }
 
@@ -189,6 +212,8 @@ public class GetTimesActivity2 extends AppCompatActivity {
                         }
 
                         for (String id : idList) {
+                            boolean addTrain = true;
+
                             Elements title = doc.select("#" + id);
 
                             String text = title.html();
@@ -264,6 +289,11 @@ public class GetTimesActivity2 extends AppCompatActivity {
                             }
 
                             train.setPrice(String.format("£%.2f", ticketPriceTotal));
+
+                            if (train.getPrice().equals("£0.00")) {
+                                addTrain = false;
+                            }
+
                             train.setArrivalTime(arrivalTime);
                             train.setDepartureTime(departureTime);
                             train.setType(ticketType);
@@ -280,11 +310,13 @@ public class GetTimesActivity2 extends AppCompatActivity {
                             train.setStartStation(startStation);
                             train.setEndStation(endStation);
 
-                            if ((trains.size() < 4) || !trains.subList(0, 4).contains(train)) {
-                                train.setUrl();
-                                trains.add(0, train);
-                                mAdapter.notifyItemInserted(0);
-                                mRecyclerView.scrollToPosition(0);
+                            if (addTrain) {
+                                if ((trains.size() < 4) || !trains.subList(0, 4).contains(train)) {
+                                    train.setUrl();
+                                    trains.add(0, train);
+                                    mAdapter.notifyItemInserted(0);
+                                    mRecyclerView.scrollToPosition(0);
+                                }
                             }
                         }
 
@@ -297,7 +329,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
                         float percentageComplete = (float) secondsElapsed.getSeconds() / totalTime * 100;
                         percentageInt = percentageComplete > 100 ? 100 : (int) percentageComplete;
 
-                        reportTimeText.setText(percentageInt + "% Complete");
+                        reportTimeText.setText(percentageInt + "% complete");
 
                         if (endDateTime.isAfter(lastDateTime)) {
                             if (!killRequests) {
@@ -311,23 +343,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
                                     startDateTime.toString(), endDateTime.toString()));
                             progressBar.setVisibility(ProgressBar.GONE);
 
-                            sortListButton.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    Collections.sort(trains, new Comparator<Train>() {
-                                        @Override
-                                        public int compare(Train t1, Train t2) {
-                                            if (t1.getPrice().equals(t2.getPrice())) {
-                                                return t1.getDepartureDateTime().isBefore(t2.getDepartureDateTime()) ? -1 : 1;
-                                            }
-                                            return Double.parseDouble(t1.getPrice().replace("£", "")) < Double.parseDouble(t2.getPrice().replace("£", "")) ? -1 : 1;
-                                        }
-                                    });
-                                    System.out.println("Trains sorted");
-                                    mAdapter.notifyDataSetChanged();
-
-                                }
-                            });
+                            sortListButton.setOnClickListener(sortButtonOnClickListener);
                         }
 
                     }
@@ -344,12 +360,22 @@ public class GetTimesActivity2 extends AppCompatActivity {
                 redoButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        StringRequest redoRequest = getStringRequest(trains.get(0).getDepartureDateTime(), requestQueue);
-                        requestQueue.add(redoRequest);
-                        redoButton.setVisibility(ImageButton.GONE);
-                        progressBar.setIndeterminate(true);
+                        StringRequest redoRequest;
+                        if (trains.size() > 0) {
+                            redoRequest = getStringRequest(trains.get(0).getDepartureDateTime(), requestQueue);
+                            requestQueue.add(redoRequest);
+                            redoButton.setVisibility(ImageButton.GONE);
+                            progressBar.setIndeterminate(true);
+                        } else {
+                            requestQueue.add(firstStringRequest);
+                            // TODO: CHECK THIS
+                        }
+
+
                     }
                 });
+
+                sortListButton.setOnClickListener(sortButtonOnClickListener);
             }
         });
     }

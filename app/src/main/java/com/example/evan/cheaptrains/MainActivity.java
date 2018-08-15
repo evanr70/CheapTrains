@@ -21,6 +21,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import org.joda.time.DateTime;
 import org.joda.time.MonthDay;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox railcard;
     private DateTimeFormatter date = DateTimeFormat.forPattern("dd/MM/yy");
     private DateTimeFormatter time = DateTimeFormat.forPattern("HH:mm");
+    private DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyHH:mm");
 
     private TextView timeText;
     private TextView endTimeText;
@@ -78,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         try {
             stations = getStations();
@@ -297,6 +300,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean inputsValid() {
         boolean inputsValid = true;
 
+        // Although it might seem less efficient to check all of the fields rather than returning false at the first issue,
+        // this approach allows required changes to be highlighted
         if (!stationNames.contains(startStationText.getText().toString())) {
             startStationText.setTextColor(Color.RED);
             inputsValid = false;
@@ -348,6 +353,29 @@ public class MainActivity extends AppCompatActivity {
             endDateText.setTextColor(textColors);
         }
 
+        // Check dates for issues
+
+        try {
+            DateTime start = dateTimeFormatter.parseDateTime(dateText.getText().toString() + timeText.getText().toString());
+            DateTime end = dateTimeFormatter.parseDateTime(endDateText.getText().toString() + endTimeText.getText().toString());
+
+            if (end.isBefore(start)) {
+                String tempDate = dateText.getText().toString();
+                String tempTime = timeText.getText().toString();
+
+                dateText.setText(endDateText.getText().toString());
+                timeText.setText(endTimeText.getText().toString());
+
+                endDateText.setText(tempDate);
+                endTimeText.setText(tempTime);
+
+                Toast.makeText(this, "Dates were swapped", Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            inputsValid = false;
+        }
 
         return inputsValid;
 
