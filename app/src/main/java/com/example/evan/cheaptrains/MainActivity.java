@@ -45,17 +45,33 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox railcard;
     private DateTimeFormatter date = DateTimeFormat.forPattern("dd/MM/yy");
     private DateTimeFormatter time = DateTimeFormat.forPattern("HH:mm");
+
     private TextView timeText;
+    private TextView endTimeText;
+
     private ImageButton timeButton;
+    private ImageButton endTimeButton;
+
     private TextView dateText;
+    private TextView endDateText;
+
     private ImageButton dateButton;
+    private ImageButton endDateButton;
+
     private Button submitButton;
+
     private TimePickerDialog.OnTimeSetListener timeSetListener;
+    private TimePickerDialog.OnTimeSetListener endTimeSetListener;
+
     private DatePickerDialog.OnDateSetListener dateSetListener;
+    private DatePickerDialog.OnDateSetListener endDateSetListener;
+
     private AutoCompleteTextView startStationText;
     private AutoCompleteTextView endStationText;
+
     private Map<String, String> stations;
     private ArrayList<String> stationNames = new ArrayList<>();
+
     private ColorStateList textColors;
 
     @Override
@@ -76,10 +92,16 @@ public class MainActivity extends AppCompatActivity {
         railcard = findViewById(R.id.railcard);
 
         timeText = findViewById(R.id.time_text);
+        endTimeText = findViewById(R.id.end_time_text);
+
         timeButton = findViewById(R.id.time_button);
+        endTimeButton = findViewById(R.id.end_time_button);
 
         dateText = findViewById(R.id.date_text);
+        endDateText = findViewById(R.id.end_date_text);
+
         dateButton = findViewById(R.id.date_button);
+        endDateButton = findViewById(R.id.end_date_button);
 
         submitButton = findViewById(R.id.submit_button);
 
@@ -91,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
         String dayOfMonth = String.format("%02d", new MonthDay().getDayOfMonth());
 
         ((TextView) findViewById(R.id.today_text)).setText(dayOfMonth);
+        ((TextView) findViewById(R.id.end_today_text)).setText(dayOfMonth);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line,
@@ -116,12 +139,37 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        endTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Calendar cal = Calendar.getInstance();
+                int hour = cal.get(Calendar.HOUR_OF_DAY);
+                int minute = cal.get(Calendar.MINUTE);
+
+                TimePickerDialog dialog = new TimePickerDialog(
+                        MainActivity.this,
+                        endTimeSetListener,
+                        hour, minute, true);
+
+                dialog.show();
+            }
+        });
+
         timeSetListener = new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int hour, int minute) {
                 @SuppressLint("DefaultLocale") String date = String.format("%02d:%02d",
                         hour, minute);
                 timeText.setText(date);
+            }
+        };
+
+        endTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker timePicker, int hour, int minute) {
+                @SuppressLint("DefaultLocale") String date = String.format("%02d:%02d",
+                        hour, minute);
+                endTimeText.setText(date);
             }
         };
 
@@ -145,6 +193,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        endDateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Calendar cal = Calendar.getInstance();
+                int year = cal.get(Calendar.YEAR);
+                int month = cal.get(Calendar.MONTH);
+                int day = cal.get(Calendar.DAY_OF_MONTH);
+
+                DatePickerDialog dialog = new DatePickerDialog(
+                        MainActivity.this,
+                        endDateSetListener,
+                        year, month, day);
+                dialog.getDatePicker().setMinDate(cal.getTimeInMillis());
+                Calendar calEnd = Calendar.getInstance();
+                calEnd.add(Calendar.MONTH, 3);
+                dialog.getDatePicker().setMaxDate(calEnd.getTimeInMillis());
+                dialog.show();
+            }
+        });
+
         dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
@@ -154,6 +222,18 @@ public class MainActivity extends AppCompatActivity {
                 @SuppressLint("DefaultLocale") String date = String.format("%02d/%02d/%s",
                         day, month, yearString);
                 dateText.setText(date);
+            }
+        };
+
+        endDateSetListener = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                month += 1;
+                String yearString = Integer.toString(year).substring(2);
+                System.out.println(yearString);
+                @SuppressLint("DefaultLocale") String date = String.format("%02d/%02d/%s",
+                        day, month, yearString);
+                endDateText.setText(date);
             }
         };
 
@@ -180,6 +260,9 @@ public class MainActivity extends AppCompatActivity {
 
         intent.putExtra("START_TIME", timeText.getText().toString().replace(":", ""));
         intent.putExtra("START_DATE", dateText.getText().toString().replace("/", ""));
+
+        intent.putExtra("END_TIME", endTimeText.getText().toString().replace(":", ""));
+        intent.putExtra("END_DATE", endDateText.getText().toString().replace("/", ""));
 
         intent.putExtra("START_STATION", stations.get(startStationText.getText().toString()));
         intent.putExtra("END_STATION", stations.get(endStationText.getText().toString()));
@@ -244,11 +327,25 @@ public class MainActivity extends AppCompatActivity {
             timeText.setTextColor(textColors);
         }
 
+        if (endTimeText.getText().equals("Time has not been set")) {
+            endTimeText.setTextColor(Color.RED);
+            inputsValid = false;
+        } else {
+            endTimeText.setTextColor(textColors);
+        }
+
         if (dateText.getText().equals("Date has not been set")) {
             dateText.setTextColor(Color.RED);
             inputsValid = false;
         } else {
             dateText.setTextColor(textColors);
+        }
+
+        if (endDateText.getText().equals("Date has not been set")) {
+            endDateText.setTextColor(Color.RED);
+            inputsValid = false;
+        } else {
+            endDateText.setTextColor(textColors);
         }
 
 
@@ -262,10 +359,23 @@ public class MainActivity extends AppCompatActivity {
         timeText.setText(time.print(dateTime));
     }
 
+    public void setEndDateToday(View view) {
+        DateTime dateTime = new DateTime();
+        endDateText.setText(date.print(dateTime));
+        endTimeText.setText(R.string.midnight);
+    }
+
     public void setDateTomorrow(View view) {
         DateTime dateTime = new DateTime();
         dateTime = dateTime.plusDays(1);
         dateText.setText(date.print(dateTime));
-        timeText.setText(time.print(dateTime));
+        timeText.setText(R.string.midnight);
+    }
+
+    public void setEndDateTomorrow(View view) {
+        DateTime dateTime = new DateTime();
+        dateTime = dateTime.plusDays(1);
+        endDateText.setText(date.print(dateTime));
+        endTimeText.setText(R.string.midnight);
     }
 }

@@ -112,10 +112,10 @@ public class GetTimesActivity2 extends AppCompatActivity {
         endStation = intent.getStringExtra("END_STATION");
 
         startDateString = intent.getStringExtra("START_DATE");
-//        endDateString = "160818";
+        endDateString = intent.getStringExtra("END_DATE");
 
         startTimeString = intent.getStringExtra("START_TIME");
-//        endTimeString = "0900";
+        endTimeString = intent.getStringExtra("END_TIME");
 
         railcard = intent.getExtras().getBoolean("RAIL_CARD");
 
@@ -142,9 +142,9 @@ public class GetTimesActivity2 extends AppCompatActivity {
         previousTimeInt = 0;
 
         startDateTime = createDateTimeFormat.parseDateTime(startDateString + startTimeString);
-//        endDateTime = createDateTimeFormat.parseDateTime(endDateString + endTimeString);
+        endDateTime = createDateTimeFormat.parseDateTime(endDateString + endTimeString);
 
-        endDateTime = startDateTime.plusDays(1);
+//        endDateTime = startDateTime.plusDays(1);
 
         initialDateTime = startDateTime;
 
