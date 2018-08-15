@@ -137,7 +137,10 @@ public class MainActivity extends AppCompatActivity {
                         MainActivity.this,
                         dateSetListener,
                         year, month, day);
-
+                dialog.getDatePicker().setMinDate(cal.getTimeInMillis());
+                Calendar calEnd = Calendar.getInstance();
+                calEnd.add(Calendar.MONTH, 3);
+                dialog.getDatePicker().setMaxDate(calEnd.getTimeInMillis());
                 dialog.show();
             }
         });
@@ -222,6 +225,15 @@ public class MainActivity extends AppCompatActivity {
             endStationText.setTextColor(Color.RED);
             inputsValid = false;
         } else {
+            endStationText.setTextColor(textColors);
+        }
+
+        if (startStationText.getText().equals(endStationText.getText())) {
+            startStationText.setTextColor(Color.RED);
+            endStationText.setTextColor(Color.RED);
+            return false;
+        } else {
+            startStationText.setTextColor(textColors);
             endStationText.setTextColor(textColors);
         }
 

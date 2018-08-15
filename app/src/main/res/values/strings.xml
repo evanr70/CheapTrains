@@ -16,4 +16,5 @@
     <string name="date_button">date button</string>
     <string name="end_date">End date:</string>
     <string name="set_end_date">Set end date</string>
+    <string name="start_date">Start date:</string>
 </resources>
