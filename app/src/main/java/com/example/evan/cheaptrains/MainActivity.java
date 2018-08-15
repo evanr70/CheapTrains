@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
@@ -18,7 +17,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -27,16 +25,17 @@ import org.joda.time.DateTime;
 import org.joda.time.MonthDay;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -62,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
 
     private Button submitButton;
 
+    private ImageButton endTodayButton;
+    private ImageButton endTomorrowButton;
+
     private TimePickerDialog.OnTimeSetListener timeSetListener;
     private TimePickerDialog.OnTimeSetListener endTimeSetListener;
 
@@ -81,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Objects.requireNonNull(getSupportActionBar()).setTitle("Journey Details");
 
         try {
             stations = getStations();
@@ -102,6 +105,9 @@ public class MainActivity extends AppCompatActivity {
 
         dateText = findViewById(R.id.date_text);
         endDateText = findViewById(R.id.end_date_text);
+
+        endTodayButton = findViewById(R.id.end_today);
+        endTomorrowButton = findViewById(R.id.end_tomorrow);
 
         dateButton = findViewById(R.id.date_button);
         endDateButton = findViewById(R.id.end_date_button);
@@ -164,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 @SuppressLint("DefaultLocale") String date = String.format("%02d:%02d",
                         hour, minute);
                 timeText.setText(date);
+
             }
         };
 
@@ -200,9 +207,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Calendar cal = Calendar.getInstance();
-                int year = cal.get(Calendar.YEAR);
-                int month = cal.get(Calendar.MONTH);
-                int day = cal.get(Calendar.DAY_OF_MONTH);
+
+                int year;
+                int month;
+                int day;
+
+                if (!dateText.getText().toString().equals("Date has not been set") && !timeText.getText().toString().equals("Time has not been set")) {
+                    year = Integer.parseInt(dateText.getText().toString().substring(6, 8));
+                    month = Integer.parseInt(dateText.getText().toString().substring(3, 5));
+                    day = Integer.parseInt(dateText.getText().toString().substring(0,2));
+
+                    cal.set(Calendar.YEAR, 2000 + year);
+                    cal.set(Calendar.MONTH, month - 1);
+                    cal.set(Calendar.DAY_OF_MONTH, day);
+
+                } else {
+
+                    year = cal.get(Calendar.YEAR);
+                    month = cal.get(Calendar.MONTH);
+                    day = cal.get(Calendar.DAY_OF_MONTH);
+                }
 
                 DatePickerDialog dialog = new DatePickerDialog(
                         MainActivity.this,
@@ -225,6 +249,27 @@ public class MainActivity extends AppCompatActivity {
                 @SuppressLint("DefaultLocale") String date = String.format("%02d/%02d/%s",
                         day, month, yearString);
                 dateText.setText(date);
+
+                DateTime today = new DateTime().withTime(23, 59, 0, 0);
+
+                new DateTime();
+
+                DateTime tomorrow = today.plusDays(1);
+
+                DateTime chosen = new DateTime().withDate(year, month, day).withTimeAtStartOfDay();
+
+                if (chosen.isAfter(today)) {
+                    redToday();
+                } else {
+                    blackToday();
+                }
+
+                if (chosen.isAfter(tomorrow)) {
+                    redTomorrow();
+                } else {
+                    blackTomorrow();
+                }
+
             }
         };
 
@@ -249,6 +294,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void redToday(){
+        endTodayButton.setColorFilter(Color.RED);
+        endTodayButton.setClickable(false);
+    }
+
+    public void blackToday() {
+        endTodayButton.setColorFilter(Color.BLACK);
+        endTodayButton.setClickable(true);
+    }
+
+    public void redTomorrow(){
+        endTomorrowButton.setColorFilter(Color.RED);
+        endTomorrowButton.setClickable(false);
+    }
+
+    public void blackTomorrow() {
+        endTomorrowButton.setColorFilter(Color.BLACK);
+        endTomorrowButton.setClickable(true);
     }
 
     public void showTimePickerDialog(View v) {
@@ -385,12 +450,13 @@ public class MainActivity extends AppCompatActivity {
         DateTime dateTime = new DateTime();
         dateText.setText(date.print(dateTime));
         timeText.setText(time.print(dateTime));
+        blackToday();
     }
 
     public void setEndDateToday(View view) {
         DateTime dateTime = new DateTime();
         endDateText.setText(date.print(dateTime));
-        endTimeText.setText(R.string.midnight);
+        endTimeText.setText(R.string.nearly_midnight);
     }
 
     public void setDateTomorrow(View view) {
@@ -398,12 +464,14 @@ public class MainActivity extends AppCompatActivity {
         dateTime = dateTime.plusDays(1);
         dateText.setText(date.print(dateTime));
         timeText.setText(R.string.midnight);
+        redToday();
+        blackTomorrow();
     }
 
     public void setEndDateTomorrow(View view) {
         DateTime dateTime = new DateTime();
         dateTime = dateTime.plusDays(1);
         endDateText.setText(date.print(dateTime));
-        endTimeText.setText(R.string.midnight);
+        endTimeText.setText(R.string.nearly_midnight);
     }
 }

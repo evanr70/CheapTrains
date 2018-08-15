@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 
 public class GetTimesActivity2 extends AppCompatActivity {
@@ -45,6 +46,8 @@ public class GetTimesActivity2 extends AppCompatActivity {
     // TODO: There are definitely still some times missing so track them down. Mornings from paddington to oxford seem to cause them
 
     boolean railcard;
+
+    int timeoutCount;
 
     TextView reportTimeText;
 
@@ -104,6 +107,8 @@ public class GetTimesActivity2 extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_get_times);
+
+        Objects.requireNonNull(getSupportActionBar()).setTitle("Journey Results");
 
         Intent intent = getIntent();
 
@@ -202,6 +207,8 @@ public class GetTimesActivity2 extends AppCompatActivity {
                     @SuppressLint({"DefaultLocale", "SetTextI18n"})
                     @Override
                     public void onResponse(String response) {
+
+                        timeoutCount = 0;
 
                         // Start of train getting business
                         Document doc = Jsoup.parse(response);
@@ -351,31 +358,46 @@ public class GetTimesActivity2 extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
-                progressBar.setIndeterminate(false);
-                progressBar.setProgress(percentageInt);
-                progressBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
-                reportTimeText.setText(R.string.network_failure);
-                redoButton.setVisibility(ImageButton.VISIBLE);
 
-                redoButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        StringRequest redoRequest;
-                        if (trains.size() > 0) {
-                            redoRequest = getStringRequest(trains.get(0).getDepartureDateTime(), requestQueue);
-                            requestQueue.add(redoRequest);
-                            redoButton.setVisibility(ImageButton.GONE);
-                            progressBar.setIndeterminate(true);
-                        } else {
-                            requestQueue.add(firstStringRequest);
-                            // TODO: CHECK THIS
-                        }
-
-
+                if (timeoutCount < 3) {
+                    StringRequest redoRequest;
+                    if (trains.size() > 0) {
+                        redoRequest = getStringRequest(trains.get(0).getDepartureDateTime(), requestQueue);
+                        requestQueue.add(redoRequest);
+                        redoButton.setVisibility(ImageButton.GONE);
+                        progressBar.setIndeterminate(true);
+                    } else {
+                        requestQueue.add(firstStringRequest);
                     }
-                });
 
-                sortListButton.setOnClickListener(sortButtonOnClickListener);
+                    timeoutCount += 1;
+
+                } else {
+                    progressBar.setIndeterminate(false);
+                    progressBar.setProgress(percentageInt);
+                    progressBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
+                    reportTimeText.setText(R.string.network_failure);
+                    redoButton.setVisibility(ImageButton.VISIBLE);
+
+                    redoButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            StringRequest redoRequest;
+                            if (trains.size() > 0) {
+                                redoRequest = getStringRequest(trains.get(0).getDepartureDateTime(), requestQueue);
+                                requestQueue.add(redoRequest);
+                                redoButton.setVisibility(ImageButton.GONE);
+                                progressBar.setIndeterminate(true);
+                            } else {
+                                requestQueue.add(firstStringRequest);
+                            }
+
+
+                        }
+                    });
+
+                    sortListButton.setOnClickListener(sortButtonOnClickListener);
+                }
             }
         });
     }
