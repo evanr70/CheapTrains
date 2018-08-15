@@ -11,4 +11,11 @@
     <string name="today">TODAY</string>
     <string name="tomorrow">TOMORROW</string>
     <string name="railcard">Railcard</string>
+    <string name="network_failure">Network failure</string>
+    <string name="redo_button">redo button</string>
+    <string name="date_button">date button</string>
+    <string name="end_date">End date:</string>
+    <string name="set_end_date">Set end date</string>
+    <string name="start_date">Start date:</string>
+    <string name="midnight">00:00</string>
 </resources>

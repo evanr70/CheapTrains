@@ -21,7 +21,6 @@
         <activity
             android:name="com.example.evan.cheaptrains.DisplayMessageActivity"
             android:parentActivityName="com.example.evan.cheaptrains.MainActivity" />
-        <activity android:name="com.example.evan.cheaptrains.GetTimesActivity"></activity>
         <activity android:name="com.example.evan.cheaptrains.GetTimesActivity2" />
     </application>
 
