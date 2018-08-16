@@ -1,11 +1,14 @@
 package com.example.evan.cheaptrains;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -162,7 +165,8 @@ public class GetTimesActivity2 extends AppCompatActivity {
         sortButtonOnClickListener = new View.OnClickListener() {
                                               @Override
                                               public void onClick(View view) {
-                                                  Toast.makeText(GetTimesActivity2.this, "Sorted by price", Toast.LENGTH_SHORT).show();
+//                                                  Toast.makeText(GetTimesActivity2.this, "Sorted by price", Toast.LENGTH_SHORT).show();
+                                                  Snackbar.make(view, "Sorted by price", Snackbar.LENGTH_SHORT).show();
                                                   Collections.sort(trains, new Comparator<Train>() {
                                                       @Override
                                                       public int compare(Train t1, Train t2) {
@@ -188,6 +192,8 @@ public class GetTimesActivity2 extends AppCompatActivity {
 
     @NonNull
     private StringRequest getStringRequest(final DateTime startDateTime, final RequestQueue requestQueue) {
+
+        sortListButton.setVisibility(ImageButton.INVISIBLE);
 
         urlForm = "https://ojp.nationalrail.co.uk/service/timesandfares/%s/%s/%s/dep";
 
@@ -346,8 +352,11 @@ public class GetTimesActivity2 extends AppCompatActivity {
                         } else {
                             System.out.println(String.format("Exited because:\nCurrent date: %s\nis after\nEnd date: %s",
                                     startDateTime.toString(), endDateTime.toString()));
-                            progressBar.setVisibility(ProgressBar.GONE);
+                            progressBar.setVisibility(ProgressBar.INVISIBLE);
 
+                            explainTicketLongClick();
+
+                            sortListButton.setVisibility(ImageButton.VISIBLE);
                             sortListButton.setOnClickListener(sortButtonOnClickListener);
                         }
 
@@ -394,6 +403,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
                         }
                     });
 
+                    sortListButton.setVisibility(ImageButton.VISIBLE);
                     sortListButton.setOnClickListener(sortButtonOnClickListener);
                 }
             }
@@ -407,5 +417,21 @@ public class GetTimesActivity2 extends AppCompatActivity {
         if (requestQueue != null) {
             requestQueue.cancelAll(this);
         }
+    }
+
+    public void explainTicketLongClick() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(GetTimesActivity2.this);
+        builder.setMessage("When journeys have loaded, you can see the ticket online by pressing and holding the ticket")
+                .setIcon(R.drawable.web_icon)
+                .setTitle("Buying Tickets")
+                .setPositiveButton("Understood", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+        AlertDialog dialog = builder.create();
+
+        dialog.show();
     }
 }
