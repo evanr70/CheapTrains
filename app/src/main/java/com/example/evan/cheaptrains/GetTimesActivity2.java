@@ -43,8 +43,6 @@ import java.util.Objects;
 
 public class GetTimesActivity2 extends AppCompatActivity {
 
-    // TODO: There are definitely still some times missing so track them down. Mornings from paddington to oxford seem to cause them
-
     boolean railcard;
 
     int timeoutCount;

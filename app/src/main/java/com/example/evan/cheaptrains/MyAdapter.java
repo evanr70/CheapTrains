@@ -82,18 +82,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                 return true;
             }
         });
-
-
-        // TODO: Implement an OnClickListener for items in RecyclerView
-//
-//        holder.parentLayout.
-//
-//        View.OnLongClickListener longClickListener = new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View view) {
-//                c
-//            }
-//        };
     }
 
     // Return the size of your dataset (invoked by the layout manager)

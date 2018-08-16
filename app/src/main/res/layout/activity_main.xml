@@ -12,9 +12,9 @@
     <View
         android:id="@+id/border"
         android:layout_width="match_parent"
-        android:layout_height="130dp"
+        android:layout_height="180dp"
         android:layout_margin="5dp"
-        android:background="@drawable/border"
+        android:background="@drawable/ticket"
         app:layout_constraintTop_toTopOf="@id/relativeLayout" />
 
     <TextView
@@ -32,12 +32,13 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_margin="20dp"
+        android:layout_marginTop="10dp"
         android:contentDescription="time button"
         android:onClick="showTimePickerDialog"
         android:src="@drawable/clock"
 
         app:layout_constraintLeft_toLeftOf="@id/relativeLayout"
-        app:layout_constraintTop_toTopOf="@id/border" />
+        app:layout_constraintTop_toBottomOf="@id/journey_start" />
 
     <TextView
         android:id="@+id/time_text"
@@ -118,9 +119,9 @@
     <View
         android:id="@+id/end_border"
         android:layout_width="match_parent"
-        android:layout_height="130dp"
+        android:layout_height="180dp"
         android:layout_margin="5dp"
-        android:background="@drawable/border"
+        android:background="@drawable/ticket"
         app:layout_constraintTop_toBottomOf="@id/border"
 
         />
@@ -144,7 +145,7 @@
         android:onClick="showTimePickerDialog"
         android:src="@drawable/clock"
         app:layout_constraintLeft_toLeftOf="@id/relativeLayout"
-        app:layout_constraintTop_toTopOf="@id/end_border" />
+        app:layout_constraintTop_toBottomOf="@id/journey_end" />
 
     <TextView
         android:id="@+id/end_time_text"
@@ -225,14 +226,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:hint="@string/start_station"
+        android:imeOptions="actionNext"
         android:inputType="text"
         android:maxEms="15"
         android:maxLines="1"
         android:minEms="15"
         android:paddingTop="10dp"
         app:layout_constraintLeft_toLeftOf="@id/end_time_button"
-        app:layout_constraintTop_toBottomOf="@id/end_border"
-        android:imeOptions="actionNext"/>
+        app:layout_constraintTop_toBottomOf="@id/end_border" />
 
     <AutoCompleteTextView
         android:id="@+id/end_station"
@@ -240,13 +241,13 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:hint="@string/end_station"
+        android:imeOptions="actionDone"
         android:inputType="text"
         android:maxEms="15"
         android:maxLines="1"
         android:minEms="15"
         app:layout_constraintLeft_toLeftOf="@id/start_station"
-        app:layout_constraintTop_toBottomOf="@id/start_station"
-        android:imeOptions="actionDone"/>
+        app:layout_constraintTop_toBottomOf="@id/start_station" />
 
 
     <!--
@@ -263,16 +264,20 @@
         />
 -->
 
-    <Button
+    <ImageButton
         android:id="@+id/submit_button"
-        android:layout_width="96dp"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_margin="20dp"
-        android:text="@string/submit"
+        android:contentDescription="@string/submit_button"
+        android:src="@drawable/send"
+        android:background="@drawable/round_button"
+        android:paddingStart="3dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="@id/relativeLayout"
         app:layout_constraintRight_toRightOf="@id/relativeLayout"
-        app:layout_constraintTop_toBottomOf="@id/end_station" />
+        app:layout_constraintTop_toBottomOf="@id/end_station"
+        />
 
     <CheckBox
         android:id="@+id/railcard"
@@ -282,7 +287,8 @@
         android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
         android:text="@string/railcard"
         app:layout_constraintStart_toStartOf="@id/time_button"
-        app:layout_constraintTop_toBottomOf="@+id/submit_button" />
+        app:layout_constraintTop_toTopOf="@id/submit_button"
+        app:layout_constraintBottom_toBottomOf="@+id/submit_button" />
 
 
 </android.support.constraint.ConstraintLayout>

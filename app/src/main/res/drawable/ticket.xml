@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The bottom layer is blue square.-->
+    <item
+        android:left="0dp"
+        android:top="0dp"
+        android:right="0dp"
+        android:bottom="0dp">
+        <shape>
+            <solid android:color="#F08801" />
+            <size android:height="200dp"
+                android:width="300dp" />
+            <corners android:radius="20dp"/>
+        </shape>
+    </item>
+
+
+    <!-- The top layer is red ring.-->
+    <item
+        android:left="0dp"
+        android:top="30dp"
+        android:right="0dp"
+        android:bottom="30dp">
+        <shape
+            android:shape="rectangle"
+            android:width="300dp"
+            android:height="100dp"
+            android:useLevel="false">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

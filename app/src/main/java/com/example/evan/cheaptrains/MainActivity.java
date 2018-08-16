@@ -40,8 +40,6 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
-    // TODO: Create buttons and forms for endDate to be passed through intent. Remeber to check that start date is before end date + default 1 day?
-
     private CheckBox railcard;
     private DateTimeFormatter date = DateTimeFormat.forPattern("dd/MM/yy");
     private DateTimeFormatter time = DateTimeFormat.forPattern("HH:mm");
@@ -59,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton dateButton;
     private ImageButton endDateButton;
 
-    private Button submitButton;
+    private ImageButton submitButton;
 
     private ImageButton endTodayButton;
     private ImageButton endTomorrowButton;
