@@ -19,25 +19,17 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.joda.time.DateTime;
 import org.joda.time.Seconds;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,7 +63,6 @@ public class GetTimesActivity2 extends AppCompatActivity {
     String urlDateTimeString;
 
     DateTimeFormatter urlDateTimeFormat = DateTimeFormat.forPattern("ddMMyy/HHmm");
-    DateTimeFormatter trainDateFormat = DateTimeFormat.forPattern("dd/MM/yyyy");
     DateTimeFormatter createDateTimeFormat = DateTimeFormat.forPattern("ddMMyyHHmm");
 
 
@@ -96,7 +87,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
     int percentageInt;
 
     RequestQueue requestQueue;
-    StringRequest firstStringRequest;
+    TrainGroupRequest firstTrainGroupRequest;
 
     boolean killRequests;
 
@@ -129,7 +120,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
         startTimeString = intent.getStringExtra("START_TIME");
         endTimeString = intent.getStringExtra("END_TIME");
 
-        railcard = intent.getExtras().getBoolean("RAIL_CARD");
+        railcard = Objects.requireNonNull(intent.getExtras()).getBoolean("RAIL_CARD");
 
         redoButton = findViewById(R.id.redo_button);
 
@@ -185,15 +176,15 @@ public class GetTimesActivity2 extends AppCompatActivity {
 
 
         progressBar.setVisibility(ProgressBar.VISIBLE);
-        firstStringRequest = getStringRequest(startDateTime, requestQueue);
-        firstStringRequest.setTag(this);
+        firstTrainGroupRequest = getTrainGroupRequest(startDateTime, requestQueue);
+        firstTrainGroupRequest.setTag(this);
         // Add the request to the request queue
-        requestQueue.add(firstStringRequest);
+        requestQueue.add(firstTrainGroupRequest);
 
     }
 
     @NonNull
-    private StringRequest getStringRequest(final DateTime startDateTime, final RequestQueue requestQueue) {
+    private TrainGroupRequest getTrainGroupRequest(final DateTime startDateTime, final RequestQueue requestQueue) {
 
         sortListButton.setVisibility(ImageButton.INVISIBLE);
 
@@ -208,145 +199,53 @@ public class GetTimesActivity2 extends AppCompatActivity {
         final DateTime[] departureDateTime = {startDateTime};
 
         //Request a string response from the provided URL.
-        return new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
+        return new TrainGroupRequest(Request.Method.GET,
+                url,
+                previousTimeInt,
+                departureDateTime,
+                startDateTime,
+                railcard,
+                startStation,
+                endStation,
+                initialDateTime,
+                totalTime,
+                new Response.Listener<TrainGroupRequest.TrainGroup>() {
                     @SuppressLint({"DefaultLocale", "SetTextI18n"})
                     @Override
-                    public void onResponse(String response) {
+                    public void onResponse(TrainGroupRequest.TrainGroup response) {
 
                         timeoutCount = 0;
 
                         // Start of train getting business
-                        Document doc = Jsoup.parse(response);
+                        List<Train> trainGroup= response.trainGroup;
 
-                        String[] idList = new String[6];
-                        for (int i = 0; i < idList.length; i++) {
-                            idList[i] = "jsonJourney-4-" + (i + 1);
-                        }
+                        findViewById(R.id.fetch_text).setVisibility(TextView.INVISIBLE);
+                        findViewById(R.id.progress_loader).setVisibility(ProgressBar.INVISIBLE);
 
-                        for (String id : idList) {
-                            boolean addTrain = true;
+                        findViewById(R.id.recycler_view).setVisibility(RecyclerView.VISIBLE);
 
-                            Elements title = doc.select("#" + id);
+                        for (Train myTrain : trainGroup) {
 
-                            String text = title.html();
 
-                            JSONObject journeyBreakdown;
-                            JSONArray singleJsonFareBreakdowns;
-
-                            String arrivalTime;
-                            String departureTime;
-
-                            double ticketPriceTotal = 0;
-                            List<String> ticketTypes = new ArrayList<>();
-                            String ticketType;
-
-                            // Get a train object to store values in
-                            Train train = new Train();
-
-                            try {
-
-                                // Root object
-                                JSONObject obj = new JSONObject(text);
-
-                                // Larger Collections
-                                journeyBreakdown = obj.getJSONObject("jsonJourneyBreakdown");
-                                singleJsonFareBreakdowns = obj.getJSONArray("singleJsonFareBreakdowns");
-
-                                // Parameters from journeyBreakdown
-                                arrivalTime = journeyBreakdown.getString("arrivalTime");
-                                departureTime = journeyBreakdown.getString("departureTime");
-
-                                int departureTimeInt = Integer.parseInt(departureTime.replace(":", ""));
-
-                                if ((departureTimeInt - previousTimeInt < -60)) {
-                                    departureDateTime[0] = startDateTime.plusDays(1);
-                                }
-
-                                previousTimeInt = departureTimeInt;
-
-                                // Parameters from jsonSingleFareBreakdowns
-                                // Iterate over each fare in singleJsonFareBreakdowns
-
-                                for (int i = 0; i < singleJsonFareBreakdowns.length(); i++) {
-                                    // Get the ticket at index i
-                                    JSONObject fareObject = singleJsonFareBreakdowns.getJSONObject(i);
-
-                                    // Add up ticket prices
-                                    ticketPriceTotal += Double.parseDouble(fareObject.getString("ticketPrice"));
-
-                                    // Add new ticket types to ticketTypes list
-                                    if (!ticketTypes.contains(fareObject.getString("ticketType"))) {
-                                        ticketTypes.add(fareObject.getString("ticketType"));
-                                    }
-                                }
-
-                                // build ticketType string for output
-                                StringBuilder sb = new StringBuilder();
-                                for (String s : ticketTypes) {
-                                    if (ticketTypes.size() > 1) {
-                                        sb.append(s);
-                                        sb.append("\n");
-                                    } else {
-                                        sb.append(s);
-                                    }
-                                }
-
-                                ticketType = sb.toString();
-                            } catch (JSONException e) {
-                                break;
+                            if ((trains.size() < 4) || !trains.subList(0, 4).contains(myTrain)) {
+                                trains.add(0, myTrain);
+                                mAdapter.notifyItemInserted(0);
+                                mRecyclerView.scrollToPosition(0);
                             }
 
-                            if (railcard) {
-                                ticketPriceTotal *= 0.667;
-                            }
-
-                            train.setPrice(String.format("£%.2f", ticketPriceTotal));
-
-                            if (train.getPrice().equals("£0.00")) {
-                                addTrain = false;
-                            }
-
-                            train.setArrivalTime(arrivalTime);
-                            train.setDepartureTime(departureTime);
-                            train.setType(ticketType);
-
-                            train.setDate(trainDateFormat.print(departureDateTime[0]));
-
-                            DateTime trainDateTime = departureDateTime[0];
-
-                            trainDateTime = trainDateTime.hourOfDay().setCopy(Integer.parseInt(departureTime.substring(0, 2)));
-                            trainDateTime = trainDateTime.minuteOfHour().setCopy(Integer.parseInt(departureTime.substring(3)));
-
-                            train.setDepartureDateTime(trainDateTime);
-
-                            train.setStartStation(startStation);
-                            train.setEndStation(endStation);
-
-                            if (addTrain) {
-                                if ((trains.size() < 4) || !trains.subList(0, 4).contains(train)) {
-                                    train.setUrl();
-                                    trains.add(0, train);
-                                    mAdapter.notifyItemInserted(0);
-                                    mRecyclerView.scrollToPosition(0);
-                                }
-                            }
                         }
 
                         DateTime lastDateTime = trains.get(0).getDepartureDateTime();
 
                         System.out.println(reportTimeText.getText());
 
-                        Seconds secondsElapsed = Seconds.secondsBetween(initialDateTime, lastDateTime);
-
-                        float percentageComplete = (float) secondsElapsed.getSeconds() / totalTime * 100;
-                        percentageInt = percentageComplete > 100 ? 100 : (int) percentageComplete;
+                        percentageInt = response.percentageInt;
 
                         reportTimeText.setText(percentageInt + "% complete");
 
                         if (endDateTime.isAfter(lastDateTime)) {
                             if (!killRequests) {
-                                StringRequest sr = getStringRequest(lastDateTime, requestQueue);
+                                TrainGroupRequest sr = getTrainGroupRequest(lastDateTime, requestQueue);
                                 requestQueue.add(sr);
                             } else {
                                 System.out.println("Back button was pressed, so request queue was killed");
@@ -355,6 +254,7 @@ public class GetTimesActivity2 extends AppCompatActivity {
                             System.out.println(String.format("Exited because:\nCurrent date: %s\nis after\nEnd date: %s",
                                     startDateTime.toString(), endDateTime.toString()));
                             progressBar.setVisibility(ProgressBar.INVISIBLE);
+                            reportTimeText.setText("100% Complete");
 
                             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(GetTimesActivity2.this);
                             if(!prefs.getBoolean("firstTime", false)) {
@@ -374,14 +274,14 @@ public class GetTimesActivity2 extends AppCompatActivity {
                 error.printStackTrace();
 
                 if (timeoutCount < 3) {
-                    StringRequest redoRequest;
+                    TrainGroupRequest redoRequest;
                     if (trains.size() > 0) {
-                        redoRequest = getStringRequest(trains.get(0).getDepartureDateTime(), requestQueue);
+                        redoRequest = getTrainGroupRequest(trains.get(0).getDepartureDateTime(), requestQueue);
                         requestQueue.add(redoRequest);
                         redoButton.setVisibility(ImageButton.GONE);
                         progressBar.setIndeterminate(true);
                     } else {
-                        requestQueue.add(firstStringRequest);
+                        requestQueue.add(firstTrainGroupRequest);
                     }
 
                     timeoutCount += 1;
@@ -396,14 +296,14 @@ public class GetTimesActivity2 extends AppCompatActivity {
                     redoButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            StringRequest redoRequest;
+                            TrainGroupRequest redoRequest;
                             if (trains.size() > 0) {
-                                redoRequest = getStringRequest(trains.get(0).getDepartureDateTime(), requestQueue);
+                                redoRequest = getTrainGroupRequest(trains.get(0).getDepartureDateTime(), requestQueue);
                                 requestQueue.add(redoRequest);
                                 redoButton.setVisibility(ImageButton.GONE);
                                 progressBar.setIndeterminate(true);
                             } else {
-                                requestQueue.add(firstStringRequest);
+                                requestQueue.add(firstTrainGroupRequest);
                             }
 
 

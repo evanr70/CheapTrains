@@ -1,9 +1,12 @@
 package com.oxlon.evan.cheaptrains;
 
+import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -28,7 +31,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         TextView typeText;
         TextView priceText;
         TextView dateText;
-        CardView parentLayout;
+
+        ConstraintLayout constraintLayout;
+        ExpandableCard parentLayout;
+
+        TextView durationText;
+        TextView changesText;
 
         ViewHolder(View itemView){
             super(itemView);
@@ -39,6 +47,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             priceText = itemView.findViewById(R.id.price);
             dateText = itemView.findViewById(R.id.date);
 
+            durationText = itemView.findViewById(R.id.duration);
+            changesText = itemView.findViewById(R.id.changes);
+
+            constraintLayout = itemView.findViewById(R.id.constraint_layout);
             parentLayout = itemView.findViewById(R.id.parent_layout);
 
         }
@@ -54,13 +66,14 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     @Override
     public MyAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Create a new view
-        CardView v = (CardView) LayoutInflater.from(parent.getContext()).inflate(R.layout.my_text_view, parent, false);
+        ExpandableCard v = (ExpandableCard) LayoutInflater.from(parent.getContext()).inflate(R.layout.my_text_view, parent, false);
+
         return new ViewHolder(v);
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element;
         final Train train = mDataset.get(position);
@@ -71,8 +84,79 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         holder.dateText.setText(train.getDate());
         holder.arrow.getDrawable().setColorFilter(holder.arrivalTimeText.getTextColors().getDefaultColor(), PorterDuff.Mode.SRC_IN);
 
-        holder.parentLayout.setOnLongClickListener(new View.OnLongClickListener() {
+        holder.durationText.setText(train.getDuration());
+        holder.changesText.setText(train.getChanges() + " changes");
 
+        if (!train.isExpanded()) {
+
+            holder.durationText.setVisibility(TextView.GONE);
+            holder.changesText.setVisibility(TextView.GONE);
+
+            ConstraintSet set = new ConstraintSet();
+            set.clone(holder.constraintLayout);
+
+            set.connect(R.id.type, ConstraintSet.TOP, R.id.changes, ConstraintSet.BOTTOM);
+            set.applyTo(holder.constraintLayout);
+
+            holder.parentLayout.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            int targetHeight = holder.parentLayout.getMeasuredHeight();
+
+            holder.parentLayout.collapse(targetHeight);
+        } else {
+
+            holder.durationText.setVisibility(TextView.VISIBLE);
+            holder.changesText.setVisibility(TextView.VISIBLE);
+
+            ConstraintSet set = new ConstraintSet();
+            set.clone(holder.constraintLayout);
+
+            set.connect(R.id.type, ConstraintSet.TOP, R.id.changes, ConstraintSet.BOTTOM);
+            set.applyTo(holder.constraintLayout);
+
+            holder.parentLayout.expand();
+        }
+
+        holder.parentLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                train.setExpanded(!train.isExpanded());
+
+                if (train.isExpanded()) {
+                    holder.durationText.setVisibility(TextView.VISIBLE);
+                    holder.changesText.setVisibility(TextView.VISIBLE);
+                } else {
+                    holder.durationText.setVisibility(TextView.GONE);
+                    holder.changesText.setVisibility(TextView.GONE);
+                }
+
+                ConstraintSet set = new ConstraintSet();
+                set.clone(holder.constraintLayout);
+
+                if (train.isExpanded()) {
+                    set.connect(R.id.type, ConstraintSet.TOP, R.id.changes, ConstraintSet.BOTTOM);
+                    set.applyTo(holder.constraintLayout);
+                    holder.parentLayout.expand();
+                } else {
+                    holder.durationText.setVisibility(TextView.GONE);
+                    holder.changesText.setVisibility(TextView.GONE);
+
+                    set.clone(holder.constraintLayout);
+
+                    set.connect(R.id.type, ConstraintSet.TOP, R.id.changes, ConstraintSet.BOTTOM);
+                    set.applyTo(holder.constraintLayout);
+
+                    holder.parentLayout.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    int targetHeight = holder.parentLayout.getMeasuredHeight();
+
+                    holder.parentLayout.collapse(targetHeight);
+                }
+
+
+            }
+        });
+
+        holder.parentLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 Intent i = new Intent(Intent.ACTION_VIEW);

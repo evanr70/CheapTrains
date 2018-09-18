@@ -1,5 +1,7 @@
 package com.oxlon.evan.cheaptrains;
 
+import android.annotation.SuppressLint;
+
 import org.joda.time.DateTime;
 
 import java.util.Objects;
@@ -14,6 +16,10 @@ public class Train {
     private String startStation;
     private String endStation;
     private String url;
+    private int durationHours;
+    private int durationMinutes;
+    private int changes;
+    private boolean expanded = false;
 
     Train (){}
 
@@ -91,6 +97,43 @@ public class Train {
                 endStation,
                 date.replace("/", ""),
                 departureTime.replace(":", ""));
+    }
+
+    public int getDurationHours() {
+        return durationHours;
+    }
+
+    public void setDurationHours(int durationHours) {
+        this.durationHours = durationHours;
+    }
+
+    public int getDurationMinutes() {
+        return durationMinutes;
+    }
+
+    public void setDurationMinutes(int durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
+
+    public String getChanges() {
+        return String.valueOf(changes);
+    }
+
+    public void setChanges(int changes) {
+        this.changes = changes;
+    }
+
+    public String getDuration() {
+        @SuppressLint("DefaultLocale") String duration = String.format("%dh %02dm", durationHours, durationMinutes);
+        return duration;
+    }
+
+    public boolean isExpanded() {
+        return expanded;
+    }
+
+    public void setExpanded(boolean expanded) {
+        this.expanded = expanded;
     }
 
     @Override
